@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Quant Dashboard — Framework Skeleton</title>
+</head>
+<body>
+    <h1>Quant Dashboard (framework skeleton)</h1>
+    <p>Available indicators: {{ indicators|join:", " }}</p>
+    <p>
+        This is a bare skeleton page. Mentees: build the real form + chart
+        here. POST to <code>/api/run-backtest/</code> with JSON like:
+    </p>
+    <pre>
+{
+  "symbol": "AAPL",
+  "start": "2020-01-01",
+  "end": "2025-01-01",
+  "indicators": [
+    {"name": "sma_crossover", "weight": 0.5, "params": {"fast": 10, "slow": 30}},
+    {"name": "rsi", "weight": 0.5, "params": {"window": 14}}
+  ]
+}
+    </pre>
+</body>
+</html>
