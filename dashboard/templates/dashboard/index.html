@@ -1,26 +1,143 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Quant Dashboard — Framework Skeleton</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaForge Dashboard</title>
+    <!-- Bootstrap CSS for Dark Mode Quant UI -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js for Equity Curve -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <h1>Quant Dashboard (framework skeleton)</h1>
-    <p>Available indicators: {{ indicators|join:", " }}</p>
-    <p>
-        This is a bare skeleton page. Mentees: build the real form + chart
-        here. POST to <code>/api/run-backtest/</code> with JSON like:
-    </p>
-    <pre>
-{
-  "symbol": "AAPL",
-  "start": "2020-01-01",
-  "end": "2025-01-01",
-  "indicators": [
-    {"name": "sma_crossover", "weight": 0.5, "params": {"fast": 10, "slow": 30}},
-    {"name": "rsi", "weight": 0.5, "params": {"window": 14}}
-  ]
-}
-    </pre>
+<body class="bg-dark text-light">
+
+<div class="container mt-4">
+    <h2 class="mb-4 border-bottom pb-2">AlphaForge Quant Engine</h2>
+
+    <div class="row">
+        <!-- LEFT PANEL: Inputs -->
+        <div class="col-md-4">
+            <div class="card bg-secondary text-white mb-4">
+                <div class="card-body">
+                    <form id="backtestForm">
+                        
+                        <!-- 1. Ticker Input -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">1. Enter Ticker</label>
+                            <input type="text" class="form-control" id="ticker" placeholder="e.g., AAPL, RELIANCE.NS" required>
+                        </div>
+
+                        <!-- 2. Timeline Input -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">2. Select Timeline</label>
+                            <div class="d-flex gap-2">
+                                <input type="date" class="form-control" id="startDate" required>
+                                <input type="date" class="form-control" id="endDate" required>
+                            </div>
+                        </div>
+
+                        <!-- 3. Strategy Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">3. Choose Strategy Type</label>
+                            <select class="form-select" id="strategyType" onchange="toggleStrategyInputs()">
+                                <option value="none">-- Select --</option>
+                                <option value="ml">Machine Learning</option>
+                                <option value="indicator">Technical Indicators</option>
+                            </select>
+                        </div>
+
+                        <!-- Dynamic: ML Model Dropdown -->
+                        <div id="mlInputs" class="mb-3" style="display: none;">
+                            <label class="form-label">Select ML Model</label>
+                            <select class="form-select" id="mlModel">
+                                <option value="random_forest">Random Forest</option>
+                                <option value="lightgbm">LightGBM</option>
+                                <option value="xgboost">XGBoost</option>
+                                <option value="linear">Linear Regression</option>
+                                <option value="ridge">Ridge Regression</option>
+                                <option value="lasso">Lasso Regression</option>
+                            </select>
+                        </div>
+
+                        <!-- Dynamic: Indicator Inputs -->
+                        <div id="indicatorInputs" class="mb-3" style="display: none;">
+                            <label class="form-label">Select Indicators & Weights</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">RSI</span>
+                                <input type="number" class="form-control" placeholder="Weight (e.g. 0.4)">
+                            </div>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">MACD</span>
+                                <input type="number" class="form-control" placeholder="Weight (e.g. 0.6)">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 fw-bold">Run Backtest</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Outputs -->
+        <div class="col-md-8">
+            
+            <!-- Fundamentals Panel -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card bg-secondary text-white">
+                        <div class="card-header fw-bold">Company Fundamentals</div>
+                        <div class="card-body">
+                            <div class="row text-center" id="fundamentalsPanel">
+                                <div class="col-4">
+                                    <h6 class="text-muted">Market Cap</h6>
+                                    <h5 id="marketCap">--</h5>
+                                </div>
+                                <div class="col-4">
+                                    <h6 class="text-muted">P/E Ratio</h6>
+                                    <h5 id="peRatio">--</h5>
+                                </div>
+                                <div class="col-4">
+                                    <h6 class="text-muted">52W High</h6>
+                                    <h5 id="fiftyTwoHigh">--</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equity Curve Chart -->
+            <div class="card bg-secondary text-white">
+                <div class="card-header fw-bold">Equity Curve</div>
+                <div class="card-body bg-light">
+                    <!-- Chart goes here -->
+                    <canvas id="equityChart" height="120"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to handle UI toggles -->
+<script>
+    function toggleStrategyInputs() {
+        const strategyType = document.getElementById("strategyType").value;
+        const mlInputs = document.getElementById("mlInputs");
+        const indicatorInputs = document.getElementById("indicatorInputs");
+
+        if (strategyType === "ml") {
+            mlInputs.style.display = "block";
+            indicatorInputs.style.display = "none";
+        } else if (strategyType === "indicator") {
+            mlInputs.style.display = "none";
+            indicatorInputs.style.display = "block";
+        } else {
+            mlInputs.style.display = "none";
+            indicatorInputs.style.display = "none";
+        }
+    }
+</script>
+
 </body>
 </html>
