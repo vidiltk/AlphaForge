@@ -4,6 +4,7 @@ Mentees will add more of these following the same pattern — subclass
 BaseIndicator, implement compute(), register with @IndicatorRegistry.register.
 """
 import pandas as pd
+import numpy as np
 
 from .base import BaseIndicator, IndicatorRegistry
 
