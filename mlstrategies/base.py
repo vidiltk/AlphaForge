@@ -36,10 +36,10 @@ class BaseMLStrategy(ABC):
     def predict(self, df: pd.DataFrame) -> pd.Series:
         raise NotImplementedError
 
-    def run(self, df: pd.DataFrame) -> pd.Series:
-        self.fit(df)
-        signal = self.predict(df)
-        return signal.reindex(df.index).clip(-1, 1).fillna(0)
+    def run(self, train_df: pd.DataFrame, test_df: pd.DataFrame) -> pd.Series:
+        self.fit(train_df)
+        signal = self.predict(test_df)
+        return signal.reindex(test_df.index).clip(-1, 1).fillna(0)
 
 
 class MLStrategyRegistry:
